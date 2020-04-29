@@ -1,4 +1,5 @@
 from requests import get
+from urllib3.exceptions import HTTPError as BaseHTTPError
 import json
 import re
 import argparse
@@ -23,42 +24,46 @@ def lookup_mac_address(api_key, mac_address):
     url = f'https://api.macaddress.io/v1?apiKey={api_key}&output=json&search={mac_address}'
 
     result = False
-    resp = get(url)
 
-    response_data = json.loads(resp.text)
+    try:
+        resp = get(url, timeout=10)
+        response_data = json.loads(resp.text)
 
-    if resp.status_code == 200:
-        if "vendorDetails" in response_data:
-            company_name = response_data['vendorDetails']['companyName']
+        if resp.status_code == 200:
+            if "vendorDetails" in response_data:
+                company_name = response_data['vendorDetails']['companyName']
 
-            if company_name != "":
-                print(f'MAC address {mac_address} belongs to {company_name}')
-                print()
-                print("Vendor Details:")
-                for key, value in response_data['vendorDetails'].items():
-                    print(f'    {key}: {value}')
-
-                if "blockDetails" in response_data:
-                    print("Block Details:")
-                    for key, value in response_data['blockDetails'].items():
+                if company_name != "":
+                    print(f'MAC address {mac_address} belongs to {company_name}')
+                    print()
+                    print("Vendor Details:")
+                    for key, value in response_data['vendorDetails'].items():
                         print(f'    {key}: {value}')
-            else:
-                print(f'No company found for MAC address {mac_address}')
-                print()
 
-            if "macAddressDetails" in response_data:
-                print("MAC Address Details:")
-                for key, value in response_data['macAddressDetails'].items():
-                    print(f'    {key}: {value}')
+                    if "blockDetails" in response_data:
+                        print("Block Details:")
+                        for key, value in response_data['blockDetails'].items():
+                            print(f'    {key}: {value}')
+                else:
+                    print(f'No company found for MAC address {mac_address}')
+                    print()
 
-            result = True
+                if "macAddressDetails" in response_data:
+                    print("MAC Address Details:")
+                    for key, value in response_data['macAddressDetails'].items():
+                        print(f'    {key}: {value}')
 
-    else:
-        print("Error occurred when attempting to lookup MAC address.")
-        print()
-        print("Response Code: " + str(resp.status_code))
-        print('Error Details:')
-        print(resp.text)
+                result = True
+
+        else:
+            print("Error occurred when attempting to lookup MAC address.")
+            print()
+            print("Response Code: " + str(resp.status_code))
+            print('Error Details:')
+            print(resp.text)
+
+    except:
+        print("Error occurred connecting to macaddress.io. Ensure you have proper network connectivity.")
 
     return result
 
