@@ -1,6 +1,8 @@
 # mac_lookup
 Dockerized CLI script to pull MAC Address vendor information from macaddress.io.
 
+You must have Docker installed on the machine where you run this tool if you are going to use the containerized approach. 
+
 To install, clone this repository to your local machine, then follow these instructions to run: 
 
 1. Obtain an API key from [https://macaddress.io/api].
